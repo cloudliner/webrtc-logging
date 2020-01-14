@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, NgZone } from '@angular/core';
 import { environment } from '../environments/environment';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
 import { AngularFireStorage } from '@angular/fire/storage';
@@ -37,6 +37,7 @@ export class AppComponent implements OnInit {
   }
 
   videoStreams: { id: string; stream: MediaStream; inputAudio: any; }[] = [];
+  mics: { label: string, deviceId: string }[] = [];
   skywayId: string;
   roomName: string;
   private localStream = null;
@@ -52,6 +53,7 @@ export class AppComponent implements OnInit {
   storageDownloadUrl: string = null;
 
   constructor(
+    private ngZone: NgZone,
     private afs: AngularFirestore,
     private storage: AngularFireStorage,
     private sanitizer: DomSanitizer,
@@ -197,6 +199,14 @@ export class AppComponent implements OnInit {
     } else {
       this.removeVideo('localStream');
     }
+
+    navigator.mediaDevices.ondevicechange = () => {
+      console.log('ondevicechange');
+      this.ngZone.run(() => {
+        this.listDevices();
+      });
+    };
+    this.listDevices();
   }
 
   record() {
@@ -253,5 +263,22 @@ export class AppComponent implements OnInit {
     this.recorder.start();
     this.recoringText = 'Stop Record';
     console.log('Start Recording');
+  }
+
+  listDevices() {
+    this.mics = [];
+    navigator.mediaDevices.enumerateDevices()
+      .then((deviceInfos) => {
+        for (let i = 0; i !== deviceInfos.length; ++i) {
+          const deviceInfo = deviceInfos[i];
+          if (deviceInfo.kind === 'audioinput') {
+            console.log(`MIC: label: ${ deviceInfo.label }, id: ${ deviceInfo.deviceId }`);
+            this.mics.push(deviceInfo);
+          }
+        }
+      })
+      .catch((error) => {
+        console.error('mediaDevice.enumerateDevices() error:', error);
+      });
   }
 }

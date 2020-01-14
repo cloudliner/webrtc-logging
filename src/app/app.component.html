@@ -40,3 +40,9 @@
     <app-video-player [stream]="videoStream.stream" [id]="videoStream.id"></app-video-player>
   </ng-container>
 </div>
+<button (click)="listDevices()">List</button>
+<div>
+  <ng-container *ngFor="let mic of mics">
+  <p>Label:{{ mic.label }}, Id: {{ mic.deviceId}}</p>
+  </ng-container>
+</div>
