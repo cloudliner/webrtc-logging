@@ -1,0 +1,11 @@
+.player {
+  border-width: 1px;
+  border-style: dashed;
+  border-color: gray;
+}
+.videoPlayer {
+  height: 180px;
+}
+.hide {
+  display: none;
+}
