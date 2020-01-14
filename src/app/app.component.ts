@@ -273,6 +273,7 @@ export class AppComponent implements OnInit {
           const deviceInfo = deviceInfos[i];
           if (deviceInfo.kind === 'audioinput') {
             console.log(`MIC: label: ${ deviceInfo.label }, id: ${ deviceInfo.deviceId }`);
+            console.log(JSON.stringify(deviceInfo.toJSON(), null, 2));
             this.mics.push(deviceInfo);
           }
         }
