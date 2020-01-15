@@ -41,18 +41,19 @@
     <app-video-player [stream]="videoStream.stream" [id]="videoStream.id"></app-video-player>
   </ng-container>
 </div>
-<button (click)="listDevices()">List</button>
+<h3 (click)="listDevices()">MIC Devices</h3>
 <div>
   <ng-container *ngFor="let mic of mics">
   <p>Label:{{ mic.label }}, Id: {{ mic.deviceId }}</p>
   </ng-container>
 </div>
-<h6>Stream</h6>
+<!--
+<h3>Stream</h3>
 <ng-container *ngIf="this.localStream">
   <p>Active: {{ this.localStream.active }}</p>
 </ng-container>
-<h6>AudioTracks</h6>
-<button (click)="showAudioTracks()">AudioTracks</button>
+-->
+<h3 (click)="showAudioTracks()">AudioTracks</h3>
 <div>
   <ng-container *ngFor="let audioTrack of audioTracks">
   <p>Setting: {{ audioTrack.getSettings() | json }}</p>
@@ -61,7 +62,7 @@
   <p>Muted: {{ audioTrack.muted }}</p>
   </ng-container>
 </div>
-<h6>Events</h6>
+<h3>Events</h3>
 <div>
   <ng-container *ngFor="let event of events">
   <p>{{ event }}</p>

@@ -79,7 +79,6 @@ export class AppComponent implements OnInit {
     this.setupCallEventHandlers(call);
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     this.audioContext = new AudioContext();
-    const localSource = this.audioContext.createMediaStreamSource(this.localStream);
     this.mixedAudio = this.audioContext.createMediaStreamDestination();
   }
 
@@ -227,6 +226,7 @@ export class AppComponent implements OnInit {
     navigator.mediaDevices.ondevicechange = (ev: Event) => {
       console.log(`ondevicechange: ${ JSON.stringify(ev)}`);
       this.ngZone.run(() => {
+        this.events.push('ondevicechange');
         this.listDevices();
       });
     };
