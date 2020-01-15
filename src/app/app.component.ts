@@ -38,9 +38,11 @@ export class AppComponent implements OnInit {
 
   videoStreams: { id: string; stream: MediaStream; inputAudio: any; }[] = [];
   mics: { label: string, deviceId: string }[] = [];
+  audioTracks: MediaStreamTrack[] = [];
+  events: string[] = [];
   skywayId: string;
   roomName: string;
-  private localStream = null;
+  localStream: MediaStream = null;
   private peer = null;
   private exsistingCall = null;
 
@@ -77,6 +79,7 @@ export class AppComponent implements OnInit {
     this.setupCallEventHandlers(call);
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     this.audioContext = new AudioContext();
+    const localSource = this.audioContext.createMediaStreamSource(this.localStream);
     this.mixedAudio = this.audioContext.createMediaStreamDestination();
   }
 
@@ -187,10 +190,31 @@ export class AppComponent implements OnInit {
       navigator.mediaDevices.getUserMedia(constraints)
         .then((stream) => {
           this.removeVideo('localStream');
-          this.videoStreams.push({id: 'localStream', stream: stream, inputAudio: null });
+          this.videoStreams.push({id: 'localStream', stream, inputAudio: null });
           this.localStream = stream;
           if (this.exsistingCall) {
             this.exsistingCall.replaceStream(stream);
+          }
+          this.localStream.onaddtrack = (ev: MediaStreamTrackEvent) => {
+            console.log(`onaddtrack: ${JSON.stringify(ev)}`);
+            this.ngZone.run(() => {
+              this.events.push(`onaddtrack: ${JSON.stringify(ev)}`);
+            });
+          };
+          this.localStream.onremovetrack =  (ev: MediaStreamTrackEvent) => {
+            console.log(`onremovetrack: ${JSON.stringify(ev)}`);
+            this.ngZone.run(() => {
+              this.events.push(`onremovetrack: ${JSON.stringify(ev)}`);
+            });
+          };
+          this.audioTracks = this.localStream.getAudioTracks();
+          for (const audioTrack of this.audioTracks) {
+            audioTrack.onended = (ev: Event) => {
+              console.log(`onended: ${JSON.stringify(ev)}`);
+              this.ngZone.run(() => {
+                this.events.push(`onended: ${ ev.type }, ${ ev.target }, ${JSON.stringify(ev)}`);
+              });
+            };
           }
         }).catch((error) => {
           console.error('mediaDevice.getUserMedia() error:', error);
@@ -200,8 +224,8 @@ export class AppComponent implements OnInit {
       this.removeVideo('localStream');
     }
 
-    navigator.mediaDevices.ondevicechange = () => {
-      console.log('ondevicechange');
+    navigator.mediaDevices.ondevicechange = (ev: Event) => {
+      console.log(`ondevicechange: ${ JSON.stringify(ev)}`);
       this.ngZone.run(() => {
         this.listDevices();
       });
@@ -281,5 +305,11 @@ export class AppComponent implements OnInit {
       .catch((error) => {
         console.error('mediaDevice.enumerateDevices() error:', error);
       });
+  }
+  showAudioTracks() {
+    this.audioTracks = [];
+    if (this.localStream) {
+      this.audioTracks = this.localStream.getAudioTracks();
+    }
   }
 }

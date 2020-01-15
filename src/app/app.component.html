@@ -1,3 +1,4 @@
+<button (click)="setupMedia()">Media Setup</button>
 <div>
   <input id="audio-only" type="checkbox" [(ngModel)]="isAudioOnly">Audio Only
 </div>
@@ -43,6 +44,26 @@
 <button (click)="listDevices()">List</button>
 <div>
   <ng-container *ngFor="let mic of mics">
-  <p>Label:{{ mic.label }}, Id: {{ mic.deviceId}}</p>
+  <p>Label:{{ mic.label }}, Id: {{ mic.deviceId }}</p>
+  </ng-container>
+</div>
+<h6>Stream</h6>
+<ng-container *ngIf="this.localStream">
+  <p>Active: {{ this.localStream.active }}</p>
+</ng-container>
+<h6>AudioTracks</h6>
+<button (click)="showAudioTracks()">AudioTracks</button>
+<div>
+  <ng-container *ngFor="let audioTrack of audioTracks">
+  <p>Setting: {{ audioTrack.getSettings() | json }}</p>
+  <p>Capabilities: {{ audioTrack.getCapabilities() | json }}</p>
+  <p>ReadyState: {{ audioTrack.readyState }}</p>
+  <p>Muted: {{ audioTrack.muted }}</p>
+  </ng-container>
+</div>
+<h6>Events</h6>
+<div>
+  <ng-container *ngFor="let event of events">
+  <p>{{ event }}</p>
   </ng-container>
 </div>
