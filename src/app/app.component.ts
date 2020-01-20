@@ -15,8 +15,8 @@ declare var MediaRecorder: any;
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit {
-  private roomsCollection: AngularFirestoreCollection<any>;
-  rooms$: Observable<any[]>;
+  // private roomsCollection: AngularFirestoreCollection<any>;
+  // rooms$: Observable<any[]>;
 
   _isAudioOnly = true;
   get isAudioOnly(): boolean {
@@ -60,22 +60,14 @@ export class AppComponent implements OnInit {
     private storage: AngularFireStorage,
     private sanitizer: DomSanitizer,
     private changeDetect: ChangeDetectorRef) {
-    this.roomsCollection = afs.collection<any>('rooms');
-    this.rooms$ = this.roomsCollection.valueChanges();
+    // this.roomsCollection = afs.collection<any>('rooms');
+    // this.rooms$ = this.roomsCollection.valueChanges();
   }
 
-  create(roomName: string) {
-    console.log('create:', roomName);
-    this.roomsCollection.add({ name: roomName });
-    this.join(roomName);
-  }
-
-  join(roomName: string) {
-    console.log('join:', roomName);
-    if (!roomName) {
-      return;
-    }
-    const call = this.peer.joinRoom(roomName, { mode: 'sfu', stream: this.localStream });
+  join() {
+    const name = 'Test';
+    console.log('join:', name);
+    const call = this.peer.joinRoom(name, { mode: 'sfu', stream: this.localStream });
     this.setupCallEventHandlers(call);
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     this.audioContext = new AudioContext();
@@ -118,8 +110,8 @@ export class AppComponent implements OnInit {
     inputAudio.connect(this.mixedAudio);
     this.videoStreams.push({
       id: stream.peerId,
-      stream: stream,
-      inputAudio: inputAudio,
+      stream,
+      inputAudio,
     });
     this.changeDetect.detectChanges();
   }
