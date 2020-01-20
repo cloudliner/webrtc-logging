@@ -5,25 +5,12 @@
 <div>
   <input id="record-only" type="checkbox" [(ngModel)]="isRecordOnly">Record Only
 </div>
-<ng-container *ngIf="!roomName">
-  <div>
-    New Room:
-    <input placeholder="Room Name" matInput #input>
-    <button (click)="create(input.value)">Create</button>
-  </div>
-  <div>
-    Join Room:
-      <select id="room" #selected>
-        <ng-container *ngFor="let room of rooms$ | async">
-          <option [value]="room.name">{{ room.name }}</option>
-        </ng-container>
-      </select>
-    <button id="join" (click)="join(selected.value)">Join</button>
-  </div>
-</ng-container>
+<div>
+  <button id="join" (click)="join()">Join Room</button>
+</div>
 <ng-container *ngIf="roomName">
   <div>
-    SkyWay ID: {{ skywayId }}
+    SkyWay Room: {{ roomName }}, ID: {{ skywayId }}
   </div>
   <div>
     <button (click)="exit()" id="exit">Exit</button>
