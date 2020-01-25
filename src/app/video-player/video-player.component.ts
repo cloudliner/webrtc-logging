@@ -1,5 +1,6 @@
-import { Component, OnInit, Input, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, ViewChild, ElementRef, NgZone } from '@angular/core';
 
+declare var window: any;
 @Component({
   selector: 'app-video-player',
   templateUrl: './video-player.component.html',
@@ -12,8 +13,20 @@ export class VideoPlayerComponent implements OnInit {
   @ViewChild('audioPlayer', { read: ElementRef, static: true } ) audioPlayer: ElementRef;
   @ViewChild('audioLevel', { read: ElementRef, static: true } ) audioLevel: ElementRef;
   hasVideo = true;
+  private analyserNode: AnalyserNode;
+  private drawInterval: number;
+
+  constructor(private ngZone: NgZone) {}
 
   ngOnInit(): void {
+    // tslint:disable-next-line:variable-name
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const audioContext = new AudioContext();
+    const sourceNode = audioContext.createMediaStreamSource(this.stream);
+    this.analyserNode = audioContext.createAnalyser();
+    this.analyserNode.fftSize = 2048;
+    sourceNode.connect(this.analyserNode);
+
     const videoTracks = this.stream.getVideoTracks();
     if (videoTracks.length === 0) {
       this.hasVideo = false;
@@ -27,6 +40,40 @@ export class VideoPlayerComponent implements OnInit {
       if (this.id === 'localStream') {
         this.videoPlayer.nativeElement.muted = true;
       }
+    }
+
+    this.ngZone.runOutsideAngular(() => {
+      this.drawInterval = window.setInterval(() => {
+        this.drawAudioLevel();
+      }, 100);
+    });
+  }
+
+  onNgDestroy(): void {
+    window.clearInterval(this.drawInterval);
+  }
+
+  drawAudioLevel() {
+    console.log(`drawAudioLevel`);
+    if (!this.audioLevel || !this.analyserNode) {
+      return;
+    }
+    const canvas = this.audioLevel.nativeElement;
+    const drawContext = canvas.getContext('2d');
+    const barWidth = canvas.width / this.analyserNode.fftSize;
+    const array = new Uint8Array(this.analyserNode.fftSize);
+    this.analyserNode.getByteTimeDomainData(array);
+    drawContext.fillStyle = 'rgba(0, 0, 0, 1)';
+    drawContext.fillRect(0, 0, canvas.width, canvas.height);
+
+    for (let i = 0; i < this.analyserNode.fftSize; ++i) {
+      const value = array[i];
+      const percent = value / 255;
+      const height = canvas.height * percent;
+      const offset = canvas.height - height;
+
+      drawContext.fillStyle = 'lime';
+      drawContext.fillRect(i * barWidth, offset, barWidth, 2);
     }
   }
 }
