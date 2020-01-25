@@ -34,21 +34,6 @@
   <p>Label:{{ mic.label }}, Id: {{ mic.deviceId }}</p>
   </ng-container>
 </div>
-<!--
-<h3>Stream</h3>
-<ng-container *ngIf="this.localStream">
-  <p>Active: {{ this.localStream.active }}</p>
-</ng-container>
--->
-<h3 (click)="showAudioTracks()">AudioTracks</h3>
-<div>
-  <ng-container *ngFor="let audioTrack of audioTracks">
-  <p>Setting: {{ audioTrack.getSettings() | json }}</p>
-  <p>Capabilities: {{ audioTrack.getCapabilities() | json }}</p>
-  <p>ReadyState: {{ audioTrack.readyState }}</p>
-  <p>Muted: {{ audioTrack.muted }}</p>
-  </ng-container>
-</div>
 <h3>Events</h3>
 <div>
   <ng-container *ngFor="let event of events">

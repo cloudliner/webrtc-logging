@@ -12,7 +12,12 @@ export class VideoPlayerComponent implements OnInit {
   @ViewChild('videoPlayer', { read: ElementRef, static: true } ) videoPlayer: ElementRef;
   @ViewChild('audioPlayer', { read: ElementRef, static: true } ) audioPlayer: ElementRef;
   @ViewChild('audioLevel', { read: ElementRef, static: true } ) audioLevel: ElementRef;
+
   hasVideo = true;
+
+  audioTracks: MediaStreamTrack[] = [];
+  events: string[] = [];
+
   private analyserNode: AnalyserNode;
   private drawInterval: number;
 
@@ -41,7 +46,40 @@ export class VideoPlayerComponent implements OnInit {
         this.videoPlayer.nativeElement.muted = true;
       }
     }
+    this.audioTracks = this.stream.getAudioTracks();
+    for (const audioTrack of this.audioTracks) {
+      audioTrack.onended = (ev: Event) => {
+        console.log(`onended: ${JSON.stringify(ev)}`);
+        this.ngZone.run(() => {
+          this.events.push(`onended: ${ ev.type }, ${ ev.target }, ${JSON.stringify(ev)}`);
+        });
+      };
+      audioTrack.onmute = (ev: Event) => {
+        console.log(`onmute: ${JSON.stringify(ev)}`);
+        this.ngZone.run(() => {
+          this.events.push(`onmute: ${ ev.type }, ${ ev.target }, ${JSON.stringify(ev)}`);
+        });
+      };
+      audioTrack.onunmute = (ev: Event) => {
+        console.log(`onunmute: ${JSON.stringify(ev)}`);
+        this.ngZone.run(() => {
+          this.events.push(`onunmute: ${ ev.type }, ${ ev.target }, ${JSON.stringify(ev)}`);
+        });
+      };
+    }
+    this.stream.onaddtrack = (ev: Event) => {
+      console.log(`onaddtrack: ${JSON.stringify(ev)}`);
+      this.ngZone.run(() => {
+        this.events.push(`onaddtrack: ${ ev.type }, ${ ev.target }, ${JSON.stringify(ev)}`);
+      });
+    };
 
+    this.stream.onremovetrack = (ev: Event) => {
+      console.log(`onremovetrack: ${JSON.stringify(ev)}`);
+      this.ngZone.run(() => {
+        this.events.push(`onremovetrack: ${ ev.type }, ${ ev.target }, ${JSON.stringify(ev)}`);
+      });
+    };
     this.ngZone.runOutsideAngular(() => {
       this.drawInterval = window.setInterval(() => {
         this.drawAudioLevel();

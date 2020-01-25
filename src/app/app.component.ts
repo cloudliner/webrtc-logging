@@ -38,7 +38,6 @@ export class AppComponent implements OnInit {
 
   videoStreams: { id: string; stream: MediaStream; inputAudio: any; }[] = [];
   mics: { label: string, deviceId: string }[] = [];
-  audioTracks: MediaStreamTrack[] = [];
   events: string[] = [];
   skywayId: string;
   roomName: string;
@@ -69,6 +68,7 @@ export class AppComponent implements OnInit {
     console.log('join:', name);
     const call = this.peer.joinRoom(name, { mode: 'sfu', stream: this.localStream });
     this.setupCallEventHandlers(call);
+    // tslint:disable-next-line:variable-name
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     this.audioContext = new AudioContext();
     this.mixedAudio = this.audioContext.createMediaStreamDestination();
@@ -198,15 +198,6 @@ export class AppComponent implements OnInit {
               this.events.push(`onremovetrack: ${JSON.stringify(ev)}`);
             });
           };
-          this.audioTracks = this.localStream.getAudioTracks();
-          for (const audioTrack of this.audioTracks) {
-            audioTrack.onended = (ev: Event) => {
-              console.log(`onended: ${JSON.stringify(ev)}`);
-              this.ngZone.run(() => {
-                this.events.push(`onended: ${ ev.type }, ${ ev.target }, ${JSON.stringify(ev)}`);
-              });
-            };
-          }
         }).catch((error) => {
           console.error('mediaDevice.getUserMedia() error:', error);
           return;
@@ -297,11 +288,5 @@ export class AppComponent implements OnInit {
       .catch((error) => {
         console.error('mediaDevice.enumerateDevices() error:', error);
       });
-  }
-  showAudioTracks() {
-    this.audioTracks = [];
-    if (this.localStream) {
-      this.audioTracks = this.localStream.getAudioTracks();
-    }
   }
 }
