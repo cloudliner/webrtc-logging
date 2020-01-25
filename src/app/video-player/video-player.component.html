@@ -1,5 +1,6 @@
 <div class="player">
-  <div>{{ id }}</div>
+  <div>{{ id }} </div>
+  <canvas width="300" height="300" #audioLevel></canvas>
   <video autoplay muted="true" class="videoPlayer" [class.hide]="!hasVideo" controls #videoPlayer></video>
   <audio autoplay muted="true" class="audioPlayer" [class.hide]="hasVideo" controls #audioPlayer></audio>
 </div>
