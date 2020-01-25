@@ -10,6 +10,7 @@ export class VideoPlayerComponent implements OnInit {
   @Input() id: string;
   @ViewChild('videoPlayer', { read: ElementRef, static: true } ) videoPlayer: ElementRef;
   @ViewChild('audioPlayer', { read: ElementRef, static: true } ) audioPlayer: ElementRef;
+  @ViewChild('audioLevel', { read: ElementRef, static: true } ) audioLevel: ElementRef;
   hasVideo = true;
 
   ngOnInit(): void {
