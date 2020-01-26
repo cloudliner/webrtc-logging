@@ -273,17 +273,19 @@ export class AppComponent implements OnInit {
   }
 
   listDevices() {
-    this.mics = [];
+    const mics = [];
     navigator.mediaDevices.enumerateDevices()
       .then((deviceInfos) => {
+        console.log(`deviceInfos: ${ deviceInfos.length }`);
         for (let i = 0; i !== deviceInfos.length; ++i) {
           const deviceInfo = deviceInfos[i];
           if (deviceInfo.kind === 'audioinput') {
             console.log(`MIC: label: ${ deviceInfo.label }, id: ${ deviceInfo.deviceId }`);
             console.log(JSON.stringify(deviceInfo.toJSON(), null, 2));
-            this.mics.push(deviceInfo);
+            mics.push(deviceInfo);
           }
         }
+        this.mics = mics;
       })
       .catch((error) => {
         console.error('mediaDevice.enumerateDevices() error:', error);

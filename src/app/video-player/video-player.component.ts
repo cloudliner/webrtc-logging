@@ -92,7 +92,6 @@ export class VideoPlayerComponent implements OnInit {
   }
 
   drawAudioLevel() {
-    console.log(`drawAudioLevel`);
     if (!this.audioLevel || !this.analyserNode) {
       return;
     }
