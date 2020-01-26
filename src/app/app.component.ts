@@ -246,7 +246,7 @@ export class AppComponent implements OnInit {
       this.blobUrl = this.sanitizer.bypassSecurityTrustResourceUrl(blob);
       this.changeDetect.detectChanges();
 
-      (async() => {
+      (async () => {
         // Upload file
         const storageRef = this.storage.ref(this.fileName);
         await storageRef.put(audioBlob);
