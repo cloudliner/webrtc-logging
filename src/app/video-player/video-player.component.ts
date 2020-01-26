@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy, Input, ViewChild, ElementRef, NgZone } from '@angular/core';
+import { EventInfo, MediaStreamTrackEventInfo } from '../info/EventInfo';
 
 declare var window: any;
 @Component({
@@ -51,33 +52,32 @@ export class VideoPlayerComponent implements OnInit {
       audioTrack.onended = (ev: Event) => {
         console.log(`onended: ${JSON.stringify(ev)}`);
         this.ngZone.run(() => {
-          this.events.push(`onended: ${ ev.type }, ${ ev.target }, ${JSON.stringify(ev)}`);
+          this.events.push(`onended: ${ new EventInfo(ev).toString() }`);
         });
       };
       audioTrack.onmute = (ev: Event) => {
         console.log(`onmute: ${JSON.stringify(ev)}`);
         this.ngZone.run(() => {
-          this.events.push(`onmute: ${ ev.type }, ${ ev.target }, ${JSON.stringify(ev)}`);
+          this.events.push(`onmute: ${ new EventInfo(ev).toString() }`);
         });
       };
       audioTrack.onunmute = (ev: Event) => {
-        console.log(`onunmute: ${JSON.stringify(ev)}`);
+        console.log(`onunmute: ${ new EventInfo(ev).toString() }`);
         this.ngZone.run(() => {
-          this.events.push(`onunmute: ${ ev.type }, ${ ev.target }, ${JSON.stringify(ev)}`);
+          this.events.push(`onunmute: ${ new EventInfo(ev).toString() }`);
         });
       };
     }
-    this.stream.onaddtrack = (ev: Event) => {
-      console.log(`onaddtrack: ${JSON.stringify(ev)}`);
+    this.stream.onaddtrack = (ev: MediaStreamTrackEvent) => {
+      console.log(`onaddtrack: ${ new MediaStreamTrackEventInfo(ev).toString() }`);
       this.ngZone.run(() => {
-        this.events.push(`onaddtrack: ${ ev.type }, ${ ev.target }, ${JSON.stringify(ev)}`);
+        this.events.push(`onaddtrack: ${ new MediaStreamTrackEventInfo(ev).toString() }`);
       });
     };
-
-    this.stream.onremovetrack = (ev: Event) => {
-      console.log(`onremovetrack: ${JSON.stringify(ev)}`);
+    this.stream.onremovetrack = (ev: MediaStreamTrackEvent) => {
+      console.log(`onremovetrack: ${ new MediaStreamTrackEventInfo(ev).toString() }`);
       this.ngZone.run(() => {
-        this.events.push(`onremovetrack: ${ ev.type }, ${ ev.target }, ${JSON.stringify(ev)}`);
+        this.events.push(`onremovetrack: ${ new MediaStreamTrackEventInfo(ev).toString() }`);
       });
     };
     this.ngZone.runOutsideAngular(() => {

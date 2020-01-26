@@ -4,6 +4,7 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/fire
 import { AngularFireStorage } from '@angular/fire/storage';
 import { Observable } from 'rxjs';
 import { DomSanitizer } from '@angular/platform-browser';
+import { EventInfo } from './info/EventInfo';
 
 declare var window: any;
 declare var Peer: any;
@@ -186,18 +187,6 @@ export class AppComponent implements OnInit {
           if (this.exsistingCall) {
             this.exsistingCall.replaceStream(stream);
           }
-          this.localStream.onaddtrack = (ev: MediaStreamTrackEvent) => {
-            console.log(`onaddtrack: ${JSON.stringify(ev)}`);
-            this.ngZone.run(() => {
-              this.events.push(`onaddtrack: ${JSON.stringify(ev)}`);
-            });
-          };
-          this.localStream.onremovetrack =  (ev: MediaStreamTrackEvent) => {
-            console.log(`onremovetrack: ${JSON.stringify(ev)}`);
-            this.ngZone.run(() => {
-              this.events.push(`onremovetrack: ${JSON.stringify(ev)}`);
-            });
-          };
         }).catch((error) => {
           console.error('mediaDevice.getUserMedia() error:', error);
           return;
@@ -207,9 +196,9 @@ export class AppComponent implements OnInit {
     }
 
     navigator.mediaDevices.ondevicechange = (ev: Event) => {
-      console.log(`ondevicechange: ${ JSON.stringify(ev)}`);
+      console.log(`ondevicechange: ${ new EventInfo(ev).toString() }`);
       this.ngZone.run(() => {
-        this.events.push('ondevicechange');
+        this.events.push(`ondevicechange: ${ new EventInfo(ev).toString() }`);
         this.listDevices();
       });
     };
