@@ -1,5 +1,20 @@
 <div class="player">
-  <div>{{ id }} </div>
+  <h3>{{ id }}</h3>
+  <div>
+    <h4>AudioTracks</h4>
+    <ng-container *ngFor="let audioTrack of audioTracks">
+      <p>Setting: {{ audioTrack.getSettings() | json }}</p>
+      <p>Capabilities: {{ audioTrack.getCapabilities() | json }}</p>
+      <p>ReadyState: {{ audioTrack.readyState }}</p>
+      <p>Muted: {{ audioTrack.muted }}</p>
+    </ng-container>
+    <h4>Events</h4>
+    <div>
+      <ng-container *ngFor="let event of events">
+      <p>{{ event }}</p>
+      </ng-container>
+    </div>
+  </div>
   <canvas width="300" height="300" #audioLevel></canvas>
   <video autoplay muted="true" class="videoPlayer" [class.hide]="!hasVideo" controls #videoPlayer></video>
   <audio autoplay muted="true" class="audioPlayer" [class.hide]="hasVideo" controls #audioPlayer></audio>

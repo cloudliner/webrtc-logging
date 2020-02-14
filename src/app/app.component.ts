@@ -4,6 +4,7 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/fire
 import { AngularFireStorage } from '@angular/fire/storage';
 import { Observable } from 'rxjs';
 import { DomSanitizer } from '@angular/platform-browser';
+import { EventInfo } from './info/EventInfo';
 
 declare var window: any;
 declare var Peer: any;
@@ -38,7 +39,6 @@ export class AppComponent implements OnInit {
 
   videoStreams: { id: string; stream: MediaStream; inputAudio: any; }[] = [];
   mics: { label: string, deviceId: string }[] = [];
-  audioTracks: MediaStreamTrack[] = [];
   events: string[] = [];
   skywayId: string;
   roomName: string;
@@ -69,6 +69,7 @@ export class AppComponent implements OnInit {
     console.log('join:', name);
     const call = this.peer.joinRoom(name, { mode: 'sfu', stream: this.localStream });
     this.setupCallEventHandlers(call);
+    // tslint:disable-next-line:variable-name
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     this.audioContext = new AudioContext();
     this.mixedAudio = this.audioContext.createMediaStreamDestination();
@@ -186,27 +187,6 @@ export class AppComponent implements OnInit {
           if (this.exsistingCall) {
             this.exsistingCall.replaceStream(stream);
           }
-          this.localStream.onaddtrack = (ev: MediaStreamTrackEvent) => {
-            console.log(`onaddtrack: ${JSON.stringify(ev)}`);
-            this.ngZone.run(() => {
-              this.events.push(`onaddtrack: ${JSON.stringify(ev)}`);
-            });
-          };
-          this.localStream.onremovetrack =  (ev: MediaStreamTrackEvent) => {
-            console.log(`onremovetrack: ${JSON.stringify(ev)}`);
-            this.ngZone.run(() => {
-              this.events.push(`onremovetrack: ${JSON.stringify(ev)}`);
-            });
-          };
-          this.audioTracks = this.localStream.getAudioTracks();
-          for (const audioTrack of this.audioTracks) {
-            audioTrack.onended = (ev: Event) => {
-              console.log(`onended: ${JSON.stringify(ev)}`);
-              this.ngZone.run(() => {
-                this.events.push(`onended: ${ ev.type }, ${ ev.target }, ${JSON.stringify(ev)}`);
-              });
-            };
-          }
         }).catch((error) => {
           console.error('mediaDevice.getUserMedia() error:', error);
           return;
@@ -216,9 +196,9 @@ export class AppComponent implements OnInit {
     }
 
     navigator.mediaDevices.ondevicechange = (ev: Event) => {
-      console.log(`ondevicechange: ${ JSON.stringify(ev)}`);
+      console.log(`ondevicechange: ${ new EventInfo(ev).toString() }`);
       this.ngZone.run(() => {
-        this.events.push('ondevicechange');
+        this.events.push(`ondevicechange: ${ new EventInfo(ev).toString() }`);
         this.listDevices();
       });
     };
@@ -255,7 +235,7 @@ export class AppComponent implements OnInit {
       this.blobUrl = this.sanitizer.bypassSecurityTrustResourceUrl(blob);
       this.changeDetect.detectChanges();
 
-      (async() => {
+      (async () => {
         // Upload file
         const storageRef = this.storage.ref(this.fileName);
         await storageRef.put(audioBlob);
@@ -282,26 +262,22 @@ export class AppComponent implements OnInit {
   }
 
   listDevices() {
-    this.mics = [];
+    const mics = [];
     navigator.mediaDevices.enumerateDevices()
       .then((deviceInfos) => {
+        console.log(`deviceInfos: ${ deviceInfos.length }`);
         for (let i = 0; i !== deviceInfos.length; ++i) {
           const deviceInfo = deviceInfos[i];
           if (deviceInfo.kind === 'audioinput') {
             console.log(`MIC: label: ${ deviceInfo.label }, id: ${ deviceInfo.deviceId }`);
             console.log(JSON.stringify(deviceInfo.toJSON(), null, 2));
-            this.mics.push(deviceInfo);
+            mics.push(deviceInfo);
           }
         }
+        this.mics = mics;
       })
       .catch((error) => {
         console.error('mediaDevice.enumerateDevices() error:', error);
       });
-  }
-  showAudioTracks() {
-    this.audioTracks = [];
-    if (this.localStream) {
-      this.audioTracks = this.localStream.getAudioTracks();
-    }
   }
 }

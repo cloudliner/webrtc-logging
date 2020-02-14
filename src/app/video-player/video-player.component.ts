@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy, Input, ViewChild, ElementRef, NgZone } from '@angular/core';
+import { EventInfo, MediaStreamTrackEventInfo } from '../info/EventInfo';
 
 declare var window: any;
 @Component({
@@ -12,7 +13,12 @@ export class VideoPlayerComponent implements OnInit {
   @ViewChild('videoPlayer', { read: ElementRef, static: true } ) videoPlayer: ElementRef;
   @ViewChild('audioPlayer', { read: ElementRef, static: true } ) audioPlayer: ElementRef;
   @ViewChild('audioLevel', { read: ElementRef, static: true } ) audioLevel: ElementRef;
+
   hasVideo = true;
+
+  audioTracks: MediaStreamTrack[] = [];
+  events: string[] = [];
+
   private analyserNode: AnalyserNode;
   private drawInterval: number;
 
@@ -41,7 +47,39 @@ export class VideoPlayerComponent implements OnInit {
         this.videoPlayer.nativeElement.muted = true;
       }
     }
-
+    this.audioTracks = this.stream.getAudioTracks();
+    for (const audioTrack of this.audioTracks) {
+      audioTrack.onended = (ev: Event) => {
+        console.log(`onended: ${JSON.stringify(ev)}`);
+        this.ngZone.run(() => {
+          this.events.push(`onended: ${ new EventInfo(ev).toString() }`);
+        });
+      };
+      audioTrack.onmute = (ev: Event) => {
+        console.log(`onmute: ${JSON.stringify(ev)}`);
+        this.ngZone.run(() => {
+          this.events.push(`onmute: ${ new EventInfo(ev).toString() }`);
+        });
+      };
+      audioTrack.onunmute = (ev: Event) => {
+        console.log(`onunmute: ${ new EventInfo(ev).toString() }`);
+        this.ngZone.run(() => {
+          this.events.push(`onunmute: ${ new EventInfo(ev).toString() }`);
+        });
+      };
+    }
+    this.stream.onaddtrack = (ev: MediaStreamTrackEvent) => {
+      console.log(`onaddtrack: ${ new MediaStreamTrackEventInfo(ev).toString() }`);
+      this.ngZone.run(() => {
+        this.events.push(`onaddtrack: ${ new MediaStreamTrackEventInfo(ev).toString() }`);
+      });
+    };
+    this.stream.onremovetrack = (ev: MediaStreamTrackEvent) => {
+      console.log(`onremovetrack: ${ new MediaStreamTrackEventInfo(ev).toString() }`);
+      this.ngZone.run(() => {
+        this.events.push(`onremovetrack: ${ new MediaStreamTrackEventInfo(ev).toString() }`);
+      });
+    };
     this.ngZone.runOutsideAngular(() => {
       this.drawInterval = window.setInterval(() => {
         this.drawAudioLevel();
@@ -54,7 +92,6 @@ export class VideoPlayerComponent implements OnInit {
   }
 
   drawAudioLevel() {
-    console.log(`drawAudioLevel`);
     if (!this.audioLevel || !this.analyserNode) {
       return;
     }
