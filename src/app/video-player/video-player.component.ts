@@ -100,16 +100,17 @@ export class VideoPlayerComponent implements OnInit {
     const barWidth = canvas.width / this.analyserNode.fftSize;
     const array = new Uint8Array(this.analyserNode.fftSize);
     this.analyserNode.getByteTimeDomainData(array);
-    drawContext.fillStyle = 'rgba(0, 0, 0, 1)';
+    drawContext.fillStyle = 'rgba(255, 255, 255, 1)';
     drawContext.fillRect(0, 0, canvas.width, canvas.height);
 
+    console.log(`array[0]: ${array[0]}, barWidth: ${barWidth}, height: ${canvas.height}`);
     for (let i = 0; i < this.analyserNode.fftSize; ++i) {
       const value = array[i];
-      const percent = value / 255;
+      const percent = ((value - 127) * 2 + 127) / 255;
       const height = canvas.height * percent;
       const offset = canvas.height - height;
 
-      drawContext.fillStyle = 'lime';
+      drawContext.fillStyle = 'blue';
       drawContext.fillRect(i * barWidth, offset, barWidth, 2);
     }
   }
