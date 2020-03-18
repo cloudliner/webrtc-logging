@@ -91,6 +91,9 @@ export class AppComponent implements OnInit {
 
     this.setupEndCallUI();
     this.roomName = call.name;
+    call.on('peerJoin', (peerId) => {
+      console.log(`peerJoin: ${peerId}`);
+    });
     call.on('stream', (stream) => {
       this.addVideo(call, stream);
     });
@@ -98,6 +101,7 @@ export class AppComponent implements OnInit {
       this.removeVideo(stream.peerId);
     });
     call.on('peerLeave', (peerId) => {
+      console.log(`peerLeave: ${peerId}`);
       this.removeVideo(peerId);
     });
     call.on('close', () => {
