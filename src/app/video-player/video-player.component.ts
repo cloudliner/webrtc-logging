@@ -103,7 +103,7 @@ export class VideoPlayerComponent implements OnInit {
     drawContext.fillStyle = 'rgba(255, 255, 255, 1)';
     drawContext.fillRect(0, 0, canvas.width, canvas.height);
 
-    console.log(`array[0]: ${array[0]}, barWidth: ${barWidth}, height: ${canvas.height}`);
+    // console.log(`array[0]: ${array[0]}, barWidth: ${barWidth}, height: ${canvas.height}`);
     for (let i = 0; i < this.analyserNode.fftSize; ++i) {
       const value = array[i];
       const percent = ((value - 127) * 2 + 127) / 255;
