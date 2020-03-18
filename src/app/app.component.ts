@@ -28,12 +28,12 @@ export class AppComponent implements OnInit {
     this.setupMedia();
   }
 
-  _isRecordOnly = false;
-  get isRecordOnly(): boolean {
-    return this._isRecordOnly;
+  _isReceiveOnly = true;
+  get isReceiveOnly(): boolean {
+    return this._isReceiveOnly;
   }
-  set isRecordOnly(value: boolean) {
-    this._isRecordOnly = value;
+  set isReceiveOnly(value: boolean) {
+    this._isReceiveOnly = value;
     this.setupMedia();
   }
 
@@ -174,7 +174,7 @@ export class AppComponent implements OnInit {
 
   setupMedia() {
     this.localStream = null;
-    if (! this.isRecordOnly) {
+    if (! this.isReceiveOnly) {
       const constraints = {
         video: ! this.isAudioOnly,
         audio: true
