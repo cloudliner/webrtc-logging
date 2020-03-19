@@ -10,6 +10,12 @@ declare var window: any;
 declare var Peer: any;
 declare var MediaRecorder: any;
 
+export class VideoStream {
+  id: string;
+  stream?: MediaStream;
+  inputAudio?: any;
+}
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -37,7 +43,7 @@ export class AppComponent implements OnInit {
     this.setupMedia();
   }
 
-  videoStreams: { id: string; stream: MediaStream; inputAudio: any; }[] = [];
+  videoStreams: VideoStream[] = [];
   mics: { label: string, deviceId: string }[] = [];
   events: string[] = [];
   skywayId: string;
@@ -62,6 +68,10 @@ export class AppComponent implements OnInit {
     private changeDetect: ChangeDetectorRef) {
     // this.roomsCollection = afs.collection<any>('rooms');
     // this.rooms$ = this.roomsCollection.valueChanges();
+    // tslint:disable-next-line:variable-name
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    this.audioContext = new AudioContext();
+    this.mixedAudio = this.audioContext.createMediaStreamDestination();
   }
 
   join() {
@@ -69,17 +79,11 @@ export class AppComponent implements OnInit {
     console.log('join:', name);
     const call = this.peer.joinRoom(name, { mode: 'sfu', stream: this.localStream });
     this.setupCallEventHandlers(call);
-    // tslint:disable-next-line:variable-name
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    this.audioContext = new AudioContext();
-    this.mixedAudio = this.audioContext.createMediaStreamDestination();
   }
 
   exit() {
     console.log('exit:', this.roomName);
     this.blobUrl = null;
-    this.mixedAudio = null;
-    this.audioContext = null;
     this.exsistingCall.close();
   }
 
@@ -91,18 +95,20 @@ export class AppComponent implements OnInit {
 
     this.setupEndCallUI();
     this.roomName = call.name;
-    call.on('peerJoin', (peerId) => {
+    call.on('peerJoin', (peerId: string) => {
       console.log(`peerJoin: ${peerId}`);
+      this.addParticipant(peerId);
     });
     call.on('stream', (stream) => {
-      this.addVideo(call, stream);
+      console.log(`stream: ${stream.peerId}`);
+      this.addVideo(stream);
     });
     call.on('removeStream', (stream) => {
-      this.removeVideo(stream.peerId);
+      console.log(`removeStream: ${stream.peerId}`);
     });
-    call.on('peerLeave', (peerId) => {
+    call.on('peerLeave', (peerId: string) => {
       console.log(`peerLeave: ${peerId}`);
-      this.removeVideo(peerId);
+      this.removeParticipant(peerId);
     });
     call.on('close', () => {
       this.removeAllRemoteViedos();
@@ -110,18 +116,38 @@ export class AppComponent implements OnInit {
     });
   }
 
-  addVideo(call, stream) {
-    const inputAudio = this.audioContext.createMediaStreamSource(stream);
-    inputAudio.connect(this.mixedAudio);
+  addParticipant(peerId: string) {
     this.videoStreams.push({
-      id: stream.peerId,
-      stream,
-      inputAudio,
+      id: peerId
     });
     this.changeDetect.detectChanges();
   }
 
-  removeVideo(id) {
+  addVideo(stream) {
+    const inputAudio = this.audioContext.createMediaStreamSource(stream);
+    inputAudio.connect(this.mixedAudio);
+    const index = this.videoStreams.findIndex((videoStream) => {
+      if (videoStream.id === stream.peerId) {
+        return true;
+      }
+      return false;
+    });
+    if (0 <= index) {
+      this.videoStreams[index] = {
+        ...this.videoStreams[index],
+        ...{ stream, inputAudio }
+      };
+    } else {
+      this.videoStreams.push({
+        id: stream.peerId,
+        stream,
+        inputAudio,
+      });
+    }
+    this.changeDetect.detectChanges();
+  }
+
+  removeParticipant(id: string) {
     const index = this.videoStreams.findIndex((videoStream) => {
       if (videoStream.id === id) {
         return true;
@@ -146,7 +172,7 @@ export class AppComponent implements OnInit {
       }
     });
     toBeRemoved.forEach((id) => {
-      this.removeVideo(id);
+      this.removeParticipant(id);
     });
   }
 
@@ -185,7 +211,7 @@ export class AppComponent implements OnInit {
       };
       navigator.mediaDevices.getUserMedia(constraints)
         .then((stream) => {
-          this.removeVideo('localStream');
+          this.removeParticipant('localStream');
           this.videoStreams.push({id: 'localStream', stream, inputAudio: null });
           this.localStream = stream;
           if (this.exsistingCall) {
@@ -196,7 +222,7 @@ export class AppComponent implements OnInit {
           return;
         });
     } else {
-      this.removeVideo('localStream');
+      this.removeParticipant('localStream');
     }
 
     navigator.mediaDevices.ondevicechange = (ev: Event) => {

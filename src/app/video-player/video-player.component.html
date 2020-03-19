@@ -17,5 +17,5 @@
   </div>
   <canvas width="280" height="40" class="audioLevel" #audioLevel></canvas>
   <video autoplay muted="true" class="videoPlayer" [class.hide]="!hasVideo" controls #videoPlayer></video>
-  <audio autoplay muted="true" class="audioPlayer" [class.hide]="hasVideo" controls #audioPlayer></audio>
+  <audio autoplay muted="true" class="audioPlayer" [class.hide]="!hasAudioOnly" controls #audioPlayer></audio>
 </div>
