@@ -14,7 +14,8 @@ export class VideoPlayerComponent implements OnInit {
   @ViewChild('audioPlayer', { read: ElementRef, static: true } ) audioPlayer: ElementRef;
   @ViewChild('audioLevel', { read: ElementRef, static: true } ) audioLevel: ElementRef;
 
-  hasVideo = true;
+  hasVideo = false;
+  hasAudioOnly = false;
 
   audioTracks: MediaStreamTrack[] = [];
   events: string[] = [];
@@ -25,6 +26,9 @@ export class VideoPlayerComponent implements OnInit {
   constructor(private ngZone: NgZone) {}
 
   ngOnInit(): void {
+    if (!this.stream) {
+      return;
+    }
     // tslint:disable-next-line:variable-name
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     const audioContext = new AudioContext();
@@ -36,12 +40,14 @@ export class VideoPlayerComponent implements OnInit {
     const videoTracks = this.stream.getVideoTracks();
     if (videoTracks.length === 0) {
       this.hasVideo = false;
+      this.hasAudioOnly = true;
       this.audioPlayer.nativeElement.srcObject = this.stream;
       if (this.id === 'localStream') {
         this.audioPlayer.nativeElement.muted = true;
       }
     } else {
       this.hasVideo = true;
+      this.hasAudioOnly = false;
       this.videoPlayer.nativeElement.srcObject = this.stream;
       if (this.id === 'localStream') {
         this.videoPlayer.nativeElement.muted = true;
@@ -103,7 +109,7 @@ export class VideoPlayerComponent implements OnInit {
     drawContext.fillStyle = 'rgba(255, 255, 255, 1)';
     drawContext.fillRect(0, 0, canvas.width, canvas.height);
 
-    console.log(`array[0]: ${array[0]}, barWidth: ${barWidth}, height: ${canvas.height}`);
+    // console.log(`array[0]: ${array[0]}, barWidth: ${barWidth}, height: ${canvas.height}`);
     for (let i = 0; i < this.analyserNode.fftSize; ++i) {
       const value = array[i];
       const percent = ((value - 127) * 2 + 127) / 255;

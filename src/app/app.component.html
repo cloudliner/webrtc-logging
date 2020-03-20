@@ -1,12 +1,10 @@
-<button (click)="setupMedia()">Media Setup</button>
 <div>
   <input id="audio-only" type="checkbox" [(ngModel)]="isAudioOnly">Audio Only
+  <input id="receive-only" type="checkbox" [(ngModel)]="isReceiveOnly">Receive Only
 </div>
 <div>
-  <input id="record-only" type="checkbox" [(ngModel)]="isRecordOnly">Record Only
-</div>
-<div>
-  <button id="join" (click)="join()">Join Room</button>
+  <button (click)="setupMedia()">Media Setup</button>
+  <button id="join" (click)="join()" >Join Room</button>
 </div>
 <ng-container *ngIf="roomName">
   <div>
@@ -25,7 +23,7 @@
 </ng-container>
 <div>
   <ng-container *ngFor="let videoStream of videoStreams">
-    <app-video-player [stream]="videoStream.stream" [id]="videoStream.id"></app-video-player>
+    <app-video-player [stream]="videoStream.stream || null" [id]="videoStream.id"></app-video-player>
   </ng-container>
 </div>
 <h3 (click)="listDevices()">MIC Devices</h3>
