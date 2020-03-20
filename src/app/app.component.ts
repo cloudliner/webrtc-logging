@@ -50,7 +50,7 @@ export class AppComponent implements OnInit {
   roomName: string;
   localStream: MediaStream = null;
   private peer = null;
-  private exsistingCall = null;
+  private exsistingSfuRoom = null;
 
   private recorder = null;
   recoringText = 'Start Record';
@@ -77,46 +77,62 @@ export class AppComponent implements OnInit {
   join() {
     const name = 'Test';
     console.log('join:', name);
-    const call = this.peer.joinRoom(name, { mode: 'sfu', stream: this.localStream });
-    this.setupCallEventHandlers(call);
+    const sfuRoom = this.peer.joinRoom(name, { mode: 'sfu', stream: this.localStream });
+    this.setupCallEventHandlers(sfuRoom);
   }
 
   exit() {
     console.log('exit:', this.roomName);
     this.blobUrl = null;
-    this.exsistingCall.close();
+    this.exsistingSfuRoom.close();
   }
 
-  setupCallEventHandlers(call) {
-    if (this.exsistingCall) {
-      this.exsistingCall.close();
+  setupCallEventHandlers(sfuRoom) {
+    if (this.exsistingSfuRoom) {
+      this.exsistingSfuRoom.close();
     }
-    this.exsistingCall = call;
+    this.exsistingSfuRoom = sfuRoom;
 
     this.setupEndCallUI();
-    this.roomName = call.name;
-    call.on('peerJoin', (peerId: string) => {
+    this.roomName = sfuRoom.name;
+    sfuRoom.on('open', (peerId: string) => {
+      console.log(`open: ${sfuRoom.name}`);
+      this.addAllParticipants(sfuRoom);
+    });
+    sfuRoom.on('peerJoin', (peerId: string) => {
       console.log(`peerJoin: ${peerId}`);
       this.addParticipant(peerId);
     });
-    call.on('stream', (stream) => {
+    sfuRoom.on('stream', (stream) => {
       console.log(`stream: ${stream.peerId}`);
       this.addVideo(stream);
     });
-    call.on('removeStream', (stream) => {
+    sfuRoom.on('removeStream', (stream) => {
       console.log(`removeStream: ${stream.peerId}`);
     });
-    call.on('peerLeave', (peerId: string) => {
+    sfuRoom.on('peerLeave', (peerId: string) => {
       console.log(`peerLeave: ${peerId}`);
       this.removeParticipant(peerId);
     });
-    call.on('close', () => {
+    sfuRoom.on('close', () => {
       this.removeAllRemoteViedos();
       this.setupMakeCallUI();
     });
   }
 
+  addAllParticipants(sfuRoom) {
+    console.log(`addAllParticipants: sfuRoom.members: ${ sfuRoom.members }`);
+    const members: string[] = sfuRoom.members;
+    members.forEach((memberPeerId) => {
+      this.videoStreams.push({
+        id: memberPeerId
+      });
+      this.changeDetect.detectChanges();
+    });
+  }
+
   addParticipant(peerId: string) {
+    console.log(`addParticipant: sfuRoom.members: ${ this.exsistingSfuRoom && this.exsistingSfuRoom.members }`);
     this.videoStreams.push({
       id: peerId
     });
@@ -148,6 +164,7 @@ export class AppComponent implements OnInit {
   }
 
   removeParticipant(id: string) {
+    console.log(`removeParticipant: sfuRoom.members: ${ this.exsistingSfuRoom && this.exsistingSfuRoom.members }`);
     const index = this.videoStreams.findIndex((videoStream) => {
       if (videoStream.id === id) {
         return true;
@@ -193,9 +210,9 @@ export class AppComponent implements OnInit {
     this.peer.on('open', () => {
       this.skywayId = this.peer.id;
     });
-    this.peer.on('call', (call) => {
-      call.answer(this.localStream);
-      this.setupCallEventHandlers(call);
+    this.peer.on('call', (sfuRoom) => {
+      sfuRoom.answer(this.localStream);
+      this.setupCallEventHandlers(sfuRoom);
     });
     this.peer.on('error', (err) => {
       alert(err.message);
@@ -214,8 +231,8 @@ export class AppComponent implements OnInit {
           this.removeParticipant('localStream');
           this.videoStreams.push({id: 'localStream', stream, inputAudio: null });
           this.localStream = stream;
-          if (this.exsistingCall) {
-            this.exsistingCall.replaceStream(stream);
+          if (this.exsistingSfuRoom) {
+            this.exsistingSfuRoom.replaceStream(stream);
           }
         }).catch((error) => {
           console.error('mediaDevice.getUserMedia() error:', error);
