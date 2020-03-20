@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, NgZone } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, NgZone } from '@angular/core';
 import { environment } from '../environments/environment';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
 import { AngularFireStorage } from '@angular/fire/storage';
@@ -21,7 +21,7 @@ export class VideoStream {
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
   // private roomsCollection: AngularFirestoreCollection<any>;
   // rooms$: Observable<any[]>;
 
@@ -217,6 +217,12 @@ export class AppComponent implements OnInit {
     this.peer.on('error', (err) => {
       alert(err.message);
     });
+  }
+
+  ngOnDestroy() {
+    if (this.peer) {
+      this.peer.destroy();
+    }
   }
 
   setupMedia() {
