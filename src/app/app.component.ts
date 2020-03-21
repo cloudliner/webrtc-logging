@@ -97,14 +97,20 @@ export class AppComponent implements OnInit, OnDestroy {
     this.roomName = sfuRoom.name;
     sfuRoom.on('open', (peerId: string) => {
       console.log(`open: ${sfuRoom.name}`);
+      console.log(` sfuRoom.members: ${ JSON.stringify(sfuRoom.members) }`);
+      console.log(` sfuRoom.remoteStreams: ${ JSON.stringify(sfuRoom.remoteStreams) }`);
       this.addAllParticipants(sfuRoom);
     });
     sfuRoom.on('peerJoin', (peerId: string) => {
       console.log(`peerJoin: ${peerId}`);
+      console.log(` sfuRoom.members: ${ JSON.stringify(sfuRoom.members) }`);
+      console.log(` sfuRoom.remoteStreams: ${ JSON.stringify(sfuRoom.remoteStreams) }`);
       this.addParticipant(peerId);
     });
     sfuRoom.on('stream', (stream) => {
       console.log(`stream: ${stream.peerId}`);
+      console.log(` sfuRoom.members: ${ JSON.stringify(sfuRoom.members) }`);
+      console.log(` sfuRoom.remoteStreams: ${ JSON.stringify(sfuRoom.remoteStreams) }`);
       this.addVideo(stream);
     });
     sfuRoom.on('removeStream', (stream) => {
@@ -121,7 +127,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   addAllParticipants(sfuRoom) {
-    console.log(`addAllParticipants: sfuRoom.members: ${ sfuRoom.members }`);
+    console.log(`addAllParticipants:`)
     const members: string[] = sfuRoom.members;
     members.forEach((memberPeerId) => {
       this.videoStreams.push({
