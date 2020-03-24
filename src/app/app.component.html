@@ -6,10 +6,13 @@
   <button (click)="setupMedia()">Media Setup</button>
   <button id="join" (click)="join()" >Join Room</button>
 </div>
-<ng-container *ngIf="roomName">
-  <div>
-    SkyWay Room: {{ roomName }}, ID: {{ skywayId }}
-  </div>
+<div>
+  SkyWay Room: <input type="text" readonly="{{exsistingSfuRoom}}" [(ngModel)]="roomName" style="width: 100px">
+</div>
+<div>
+  ID: <input type="text" readonly="{{exsistingSfuRoom}}" [(ngModel)]="peerId" style="width: 200px">
+</div>
+<ng-container *ngIf="exsistingSfuRoom">
   <div>
     <button (click)="exit()" id="exit">Exit</button>
     <button (click)="record()" id="record">{{ recoringText }}</button>

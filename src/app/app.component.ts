@@ -46,11 +46,11 @@ export class AppComponent implements OnInit, OnDestroy {
   videoStreams: VideoStream[] = [];
   mics: { label: string, deviceId: string }[] = [];
   events: string[] = [];
-  skywayId: string;
-  roomName: string;
+  peerId = '';
+  roomName = 'Test';
   localStream: MediaStream = null;
   private peer = null;
-  private exsistingSfuRoom = null;
+  exsistingSfuRoom = null;
 
   private recorder = null;
   recoringText = 'Start Record';
@@ -75,16 +75,49 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   join() {
-    const name = 'Test';
-    console.log('join:', name);
-    const sfuRoom = this.peer.joinRoom(name, { mode: 'sfu', stream: this.localStream });
-    this.setupCallEventHandlers(sfuRoom);
+    console.log('join:', this.roomName);
+
+    if (this.peer) {
+      this.executeJoin();
+    } else {
+      if (this.peerId) {
+        this.peer = new Peer(this.peerId, {
+          key: environment.skyway.apiKey,
+          debug: 3,
+        });
+      } else {
+        this.peer = new Peer({
+          key: environment.skyway.apiKey,
+          debug: 3,
+        });
+      }
+      this.peer.on('open', () => {
+        this.peerId = this.peer.id;
+        sessionStorage.setItem('peerID', this.peerId);
+        this.executeJoin();
+      });
+      this.peer.on('error', (err) => {
+        alert(err.message);
+      });
+    }
+  }
+
+  executeJoin() {
+    const call = this.peer.joinRoom(this.roomName, { mode: 'sfu', stream: this.localStream });
+    this.setupCallEventHandlers(call);
+    this.changeDetect.detectChanges();
   }
 
   exit() {
     console.log('exit:', this.roomName);
     this.blobUrl = null;
     this.exsistingSfuRoom.close();
+    this.exsistingSfuRoom = null;
+    if (this.peer) {
+      this.peer.destroy();
+      this.peer = null;
+    }
+    this.changeDetect.detectChanges();
   }
 
   setupCallEventHandlers(sfuRoom) {
@@ -94,7 +127,6 @@ export class AppComponent implements OnInit, OnDestroy {
     this.exsistingSfuRoom = sfuRoom;
 
     this.setupEndCallUI();
-    this.roomName = sfuRoom.name;
     sfuRoom.on('open', (peerId: string) => {
       console.log(`open: ${sfuRoom.name}`);
       console.log(` sfuRoom.members: ${ JSON.stringify(sfuRoom.members) }`);
@@ -200,7 +232,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   setupMakeCallUI() {
-    this.roomName = null;
+    // TODO
   }
 
   setupEndCallUI() {
@@ -209,20 +241,10 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.setupMedia();
-    this.peer = new Peer({
-      key: environment.skyway.apiKey,
-      debug: 3,
-    });
-    this.peer.on('open', () => {
-      this.skywayId = this.peer.id;
-    });
-    this.peer.on('call', (sfuRoom) => {
-      sfuRoom.answer(this.localStream);
-      this.setupCallEventHandlers(sfuRoom);
-    });
-    this.peer.on('error', (err) => {
-      alert(err.message);
-    });
+    const peerId = sessionStorage.getItem('peerID');
+    if (peerId) {
+      this.peerId = peerId;
+    }
   }
 
   ngOnDestroy() {
